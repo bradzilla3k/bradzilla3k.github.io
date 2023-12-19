@@ -1,0 +1,29 @@
+# Define the path to your PAC file
+$pacFilePath = "C:\Path\To\Your\PAC\File.pac"
+
+# Read the contents of the PAC file
+$pacFileContents = Get-Content -Path $pacFilePath
+
+# Define the patterns to check
+$patterns = @(
+    "function FindProxyForURL\(url, host\) {",
+    "return \"PROXY\"",
+    "if \(.+\) {",
+    "/.+/i.test\(url\)",
+    "// .+",
+    "shExpMatch\(url, \".+\"\)",
+    "isInNet\(host, \".+\", \".+\"\)"
+)
+
+# Loop through each line in the PAC file
+for ($i = 0; $i -lt $pacFileContents.Count; $i++) {
+    $line = $pacFileContents[$i]
+
+    # Check if the line matches any of the defined patterns
+    $matches = $patterns | Where-Object { $line -match $_ }
+
+    # If no matches occurred, print line number and content
+    if (-not $matches) {
+        Write-Host "Line $($i+1): $line"
+    }
+}
