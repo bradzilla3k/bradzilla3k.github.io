@@ -1,0 +1,41 @@
+# Check if a PAC file path is provided as a command-line argument
+if ($args.Count -eq 0) {
+    Write-Host "Usage: PowerShellScript.ps1 -PACFilePath <Path\To\PAC\File.pac>"
+    exit
+}
+
+# Get the PAC file path from the command-line argument
+$pacFilePath = $args[0]
+
+# Check if the specified file exists
+if (-not (Test-Path $pacFilePath -PathType Leaf)) {
+    Write-Host "Error: The specified PAC file does not exist."
+    exit
+}
+
+# Read the contents of the PAC file
+$pacFileContents = Get-Content -Path $pacFilePath
+
+# Define the simplified patterns to check
+$patterns = @(
+    "function FindProxyForURL\s*\(.*\) {",
+    "return\s+\"PROXY\";",
+    "if\s*\(.*\) {",
+    "/.+/i.test\(url\);",
+    "// .+",
+    "shExpMatch\(url, \".+\"\);",
+    "isInNet\(host, \".+\", \".+\"\);"
+)
+
+# Loop through each line in the PAC file
+for ($i = 0; $i -lt $pacFileContents.Count; $i++) {
+    $line = $pacFileContents[$i]
+
+    # Check if the line matches any of the defined patterns
+    $matches = $patterns | Where-Object { $line -match $_ }
+
+    # If no matches occurred, print line number and content
+    if (-not $matches) {
+        Write-Host "Line $($i+1): $line"
+    }
+}
